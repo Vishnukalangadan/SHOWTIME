@@ -1,8 +1,8 @@
 
 import { StatusBar } from 'expo-status-bar';
-import { Text, View, StyleSheet, Image, Dimensions, Linking, ImageBackground, ScrollView, TouchableOpacity, FlatList ,Share} from 'react-native';
+import { Text, View, Alert, StyleSheet, Button, Image, Dimensions, Linking, ImageBackground, ScrollView, TouchableOpacity, FlatList, Share } from 'react-native';
 import { getMovieById, getPoster, getVideo, getLanguages } from '../services/MovieServices';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import COLORS from '../constants/Colors';
 import FONTS from '../constants/Fonts'
 import ItemSeparator from '../components/ItemSeparator';
@@ -12,6 +12,7 @@ import { APPEND_TO_RESPONSE as AR } from '../constants/Urls';
 import CastCards from '../components/CastCard';
 import MovieCard from '../components/MovieCard';
 import IMAGES from '../constants/Images';
+import YoutubePlayer from "react-native-youtube-iframe";
 
 const { width, height } = Dimensions.get("screen");
 
@@ -28,7 +29,19 @@ const MovieScreen = ({ route, navigation }) => {
   // console.log("details", movieDetails)
   // console.log("TRA", trailer)
   const index = trailer.findIndex(item => item.type === "Trailer")
+  const [playing, setPlaying] = useState(false);
+  const [play, setPlay] = useState(false)
   // console.log("index",index)
+  const onStateChange = useCallback((state) => {
+    if (state === "ended") {
+      setPlaying(false);
+      Alert.alert("video has finished playing!");
+    }
+  }, []);
+
+  const togglePlaying = useCallback(() => {
+    setPlaying((prev) => !prev);
+  }, []);
 
   useEffect(() => {
     getMovieById(movieId, `${AR.VIDEOS},${AR.CREDITS},${AR.SIMILAR},${AR.RECOMMENDATIONS}`).then(rsp => {
@@ -49,27 +62,46 @@ const MovieScreen = ({ route, navigation }) => {
       <View style={styles.posterImageContainer}>
         <Image
           style={styles.posterImage}
-          resizeMode='cover'  source={{uri: getPoster(movieDetails.backdrop_path)}}
+          resizeMode='cover' source={{ uri: getPoster(movieDetails.backdrop_path) }}
         />
       </View>
       <View style={styles.headerContainer}>
         <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.goBack()}>
           <Feather name='chevron-left' size={35} color={COLORS.WHITE} />
         </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.5} onPress={()=> Share.share({message:`Movie Name - ${movieDetails?.title}\n\n Trailer Link - ${`www.youtube.com/watch?v=${trailer[index !== -1 ? index : 0]?.key}`}`})
+        <TouchableOpacity activeOpacity={0.5} onPress={() => Share.share({ message: `Movie Name - ${movieDetails?.title}\n\n Trailer Link - ${`www.youtube.com/watch?v=${trailer[index !== -1 ? index : 0]?.key}`}` })
 
         }>
-        <Text style={styles.headerText}>Share</Text>
+          <Text style={styles.headerText}>Share</Text>
 
         </TouchableOpacity>
-        
+
       </View>
-      <TouchableOpacity style={styles.playBtn} onPress={() => Linking.openURL(getVideo(trailer[index !== -1 ? index : 0]?.key))}>
-        <Ionicons name="play-circle-outline" size={55} color={COLORS.WHITE} />
+      {/* <TouchableOpacity style={styles.playBtn} onPress={() => Linking.openURL(getVideo(trailer[index !== -1 ? index : 0]?.key))}> */}
+      <TouchableOpacity style={styles.playBtn} onPress={() => setPlay(!play)}>
+        {
+          play === false ? <Ionicons name="play-circle-outline" size={55} color={COLORS.WHITE} />
+            : <Ionicons name="stop-circle-outline" size={55} color={COLORS.WHITE} />
+        }
+
       </TouchableOpacity>
+
       <ItemSeparator
-        height={setHeight(25)}
+        height={setHeight(34)}
       />
+      {
+        play === true ?
+          <View>
+            <YoutubePlayer
+              height={250}
+              play={playing}
+              videoId={trailer[index !== -1 ? index : 0]?.key}
+              onChangeState={onStateChange}
+            />
+            {/* <Button title={playing ? "pause" : "play"} onPress={togglePlaying} /> */}
+          </View> : null
+
+      }
       <View style={styles.movieTitleConatiner}>
         <Text style={styles.movieTitle} numberOfLines={2}>{movieDetails.title}</Text>
         <View style={styles.row}>
@@ -86,7 +118,6 @@ const MovieScreen = ({ route, navigation }) => {
         <Text style={styles.overViewTitle}>SYNOPSIS</Text>
         <Text style={styles.overViewText}>{movieDetails?.overview}</Text>
       </View>
-
       <View>
         <View style={styles.castContainer}>
           <TouchableOpacity onPress={() => setIsCastClicked(true)} >
@@ -107,7 +138,7 @@ const MovieScreen = ({ route, navigation }) => {
           renderItem={({ item }) => <CastCards originalName={item?.name} characterName={isCastClicked ? item?.character : item.job} image={item?.profile_path} />}
         />
       </View>
-      <View style={{marginVertical:10}}>
+      <View style={{ marginVertical: 10 }}>
         <Text style={styles.castTitle}>Recommendations</Text>
         <FlatList
           data={movieDetails?.recommendations?.results}
@@ -124,11 +155,11 @@ const MovieScreen = ({ route, navigation }) => {
             voteCount={item.vote_count}
             poster={item.poster_path}
             size={0.5}
-            onPress={() => navigation.push("Movie",{movieId:item.id})}
+            onPress={() => navigation.push("Movie", { movieId: item.id })}
           />}
         />
       </View>
-      <View style={{ marginVertical:10}}>
+      <View style={{ marginVertical: 10 }}>
         <Text style={styles.castTitle}>Similar</Text>
         <FlatList
           data={movieDetails?.similar?.results}
@@ -145,7 +176,7 @@ const MovieScreen = ({ route, navigation }) => {
             voteCount={item.vote_count}
             poster={item.poster_path}
             size={0.5}
-            onPress={() => navigation.push("Movie",{movieId:item.id})}
+            onPress={() => navigation.push("Movie", { movieId: item.id })}
           />}
         />
       </View>
@@ -174,9 +205,9 @@ const styles = StyleSheet.create({
   posterImage: {
     width: setWidth(100),
     height: setHeight(30),
-    alignSelf:'baseline',
-    borderBottomLeftRadius:50,
-    borderBottomRightRadius:50
+    alignSelf: 'baseline',
+    borderBottomLeftRadius: 50,
+    borderBottomRightRadius: 50
   },
   linearGradient: {
     width: setWidth(100),
@@ -206,7 +237,7 @@ const styles = StyleSheet.create({
     left: setWidth(45),
   },
   movieTitleConatiner: {
-    marginTop: 50,
+    // marginTop: 50,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -250,7 +281,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.BOLD,
     fontSize: 13,
     paddingVertical: 10,
-    textAlign:'justify'
+    textAlign: 'justify'
   },
   overViewTitle: {
     color: COLORS.WHITE,
@@ -269,7 +300,7 @@ const styles = StyleSheet.create({
   castContainer: {
     marginRight: 10,
     flexDirection: 'row',
-    marginBottom:10
+    marginBottom: 10
   },
 })
 
