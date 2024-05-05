@@ -5,7 +5,7 @@
     "description": "This is an android application . Here you can fing the movie details and their trailers",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/App Icon.png",
+    "icon": "./assets/appIcon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -22,7 +22,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.vishnukalangadan.ShowTime"
     },
     "web": {
       "favicon": "./assets/favicon.png"
