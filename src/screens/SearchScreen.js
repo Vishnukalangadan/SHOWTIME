@@ -24,7 +24,7 @@ const SearchScreen = () => {
         setSearchText(value)
         await getSearchedMovies({
             query:value,
-            include_adult:'true',
+            include_adult:'false',
         }).then((response)=>{setSearchedMovies(response.data)
           setResultsCount(response.data.results)
         })

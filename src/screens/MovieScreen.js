@@ -32,12 +32,12 @@ const MovieScreen = ({ route, navigation }) => {
   const [playing, setPlaying] = useState(false);
   const [play, setPlay] = useState(false)
   // console.log("index",index)
-  const onStateChange = useCallback((state) => {
-    if (state === "ended") {
-      setPlaying(false);
-      Alert.alert("video has finished playing!");
-    }
-  }, []);
+  // const onStateChange = useCallback((state) => {
+  //   if (state === "ended") {
+  //     setPlaying(false);
+  //     Alert.alert("video has finished playing!");
+  //   }
+  // }, []);
 
   const togglePlaying = useCallback(() => {
     setPlaying((prev) => !prev);
@@ -96,7 +96,7 @@ const MovieScreen = ({ route, navigation }) => {
               height={250}
               play={playing}
               videoId={trailer[index !== -1 ? index : 0]?.key}
-              onChangeState={onStateChange}
+              // onChangeState={onStateChange}
             />
             {/* <Button title={playing ? "pause" : "play"} onPress={togglePlaying} /> */}
           </View> : null
